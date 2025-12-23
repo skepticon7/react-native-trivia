@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {StatusBar} from "expo-status-bar";
+import {Toast} from 'toastify-react-native';
+import {login} from '../services/authService';
 
 const DEMO_ACCOUNT = {
     email: 'demo@trivia.com',
@@ -22,38 +24,31 @@ const DEMO_ACCOUNT = {
 
 export default function Login() {
     const navigation = useNavigation();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [user , setUser] = useState({
+        email : '',
+        password : ''
+    })
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleLogin = () => {
-        if (!email || !password) {
-            Alert.alert('Error', 'Please enter both email and password');
+    const handleLogin = async () => {
+        if (!user.email || !user.password) {
+            Alert.alert('Please enter both email and password' , 'bottom');
             return;
         }
 
-        setIsLoading(true);
-
-        // Simulate network delay
-        setTimeout(() => {
-            if (email === DEMO_ACCOUNT.email && password === DEMO_ACCOUNT.password) {
-                Alert.alert('Success', 'Login successful! Welcome back to Trivia!');
-                navigation.navigate('Topics');
-            } else {
-                Alert.alert(
-                    'Invalid Credentials',
-                    'Please check your email and password',
-                    [{ text: 'OK' }]
-                );
-            }
+        try{
+            setIsLoading(true);
+            const loggedInUser = await login(user.email , user.password);
+            Toast.success(`${loggedInUser.displayName} successfully logged in` , "bottom");
+        }catch (e) {
+            console.log(`Error : ${e}`);
+            Toast.error("Try Again Later" , 'bottom');
+        }finally {
             setIsLoading(false);
-        }, 1000);
+        }
+
     };
 
-    const handleDemoLogin = () => {
-        setEmail(DEMO_ACCOUNT.email);
-        setPassword(DEMO_ACCOUNT.password);
-    };
 
     return (
         <>
@@ -90,8 +85,8 @@ export default function Login() {
                                             style={styles.input}
                                             placeholder="you@example.com"
                                             placeholderTextColor="#999"
-                                            value={email}
-                                            onChangeText={setEmail}
+                                            value={user.email}
+                                            onChangeText={(text) => setUser({...user , email: text})}
                                             autoCapitalize="none"
                                             keyboardType="email-address"
                                             editable={!isLoading}
@@ -104,8 +99,8 @@ export default function Login() {
                                             style={styles.input}
                                             placeholder="Enter your password"
                                             placeholderTextColor="#999"
-                                            value={password}
-                                            onChangeText={setPassword}
+                                            value={user.password}
+                                            onChangeText={(text) => setUser({...user , password: text})}
                                             secureTextEntry
                                             editable={!isLoading}
                                         />

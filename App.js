@@ -4,7 +4,9 @@ import HomePage from "./components/HomePage";
 import Login from "./components/Login";
 import {NavigationContainer} from '@react-navigation/native'
 import {createStackNavigator} from '@react-navigation/stack';
+import ToastProvider from 'toastify-react-native'
 import Signup from "./components/Signup";
+
 
 
 const Stack = createStackNavigator();
@@ -24,6 +26,7 @@ export default function App() {
               </Stack.Navigator>
 
           </NavigationContainer>
+          <ToastProvider/>
       </>
 
   );

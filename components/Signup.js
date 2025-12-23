@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {StatusBar} from "expo-status-bar";
+import {signUp} from '../services/authService'
+import {Toast} from 'toastify-react-native'
 
 const DEMO_ACCOUNT = {
     email: 'demo@trivia.com',
@@ -22,38 +24,31 @@ const DEMO_ACCOUNT = {
 
 export default function Signup() {
     const navigation = useNavigation();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [user , setUser] = useState({
+        username : '',
+        email : '',
+        password: '',
+    })
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleLogin = () => {
-        if (!email || !password) {
-            Alert.alert('Error', 'Please enter both email and password');
+    const handleSignup = async () => {
+        if (!user.email || !user.password || !user.username) {
+            Toast.warn('Please enter both email and password' , 'bottom');
             return;
         }
 
-        setIsLoading(true);
-
-        // Simulate network delay
-        setTimeout(() => {
-            if (email === DEMO_ACCOUNT.email && password === DEMO_ACCOUNT.password) {
-                Alert.alert('Success', 'Login successful! Welcome back to Trivia!');
-                navigation.navigate('Topics');
-            } else {
-                Alert.alert(
-                    'Invalid Credentials',
-                    'Please check your email and password',
-                    [{ text: 'OK' }]
-                );
-            }
+        try {
+            setIsLoading(true);
+            const signupUser = await signUp(user.email, user.password , user.username);
+            Toast.success(`${signupUser.displayName} Successfully created` , "bottom")
+        }catch (e) {
+            console.log(`Error : ${e}`);
+            Toast.error('Try Again later', 'bottom');
+        }finally {
             setIsLoading(false);
-        }, 1000);
+        }
     };
 
-    const handleDemoLogin = () => {
-        setEmail(DEMO_ACCOUNT.email);
-        setPassword(DEMO_ACCOUNT.password);
-    };
 
     return (
         <>
@@ -91,8 +86,8 @@ export default function Signup() {
                                             style={styles.input}
                                             placeholder="TriviaUser"
                                             placeholderTextColor="#999"
-                                            value={email}
-                                            onChangeText={setEmail}
+                                            value={user.username}
+                                            onChangeText={(text) => setUser({...user , username: text})}
                                             autoCapitalize="none"
                                             keyboardType="email-address"
                                             editable={!isLoading}
@@ -105,8 +100,8 @@ export default function Signup() {
                                             style={styles.input}
                                             placeholder="you@example.com"
                                             placeholderTextColor="#999"
-                                            value={email}
-                                            onChangeText={setEmail}
+                                            value={user.email}
+                                            onChangeText={(text) => setUser({...user , email: text})}
                                             autoCapitalize="none"
                                             keyboardType="email-address"
                                             editable={!isLoading}
@@ -119,8 +114,8 @@ export default function Signup() {
                                             style={styles.input}
                                             placeholder="Enter your password"
                                             placeholderTextColor="#999"
-                                            value={password}
-                                            onChangeText={setPassword}
+                                            value={user.password}
+                                            onChangeText={(text) => setUser({...user , password: text})}
                                             secureTextEntry
                                             editable={!isLoading}
                                         />
@@ -128,7 +123,7 @@ export default function Signup() {
 
                                     <TouchableOpacity
                                         style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
-                                        onPress={handleLogin}
+                                        onPress={handleSignup}
                                         disabled={isLoading}
                                         activeOpacity={0.8}
                                     >
