@@ -20,7 +20,7 @@ const DEMO_ACCOUNT = {
     password: 'demo123',
 };
 
-export default function Login() {
+export default function Signup() {
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -74,9 +74,9 @@ export default function Login() {
                             </TouchableOpacity>
 
                             <View style={styles.header}>
-                                <Text style={styles.title}>Welcome back</Text>
+                                <Text style={styles.title}>Welcome to Trivia</Text>
                                 <Text style={styles.subtitle}>
-                                    Log in to continue your trivia journey
+                                    Sign up to start your trivia journey
                                 </Text>
                             </View>
 
@@ -84,6 +84,21 @@ export default function Login() {
                             {/* Login Form */}
                             <View style={styles.card}>
                                 <View style={styles.form}>
+
+                                    <View style={styles.inputGroup}>
+                                        <Text style={styles.label}>Username</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="TriviaUser"
+                                            placeholderTextColor="#999"
+                                            value={email}
+                                            onChangeText={setEmail}
+                                            autoCapitalize="none"
+                                            keyboardType="email-address"
+                                            editable={!isLoading}
+                                        />
+                                    </View>
+
                                     <View style={styles.inputGroup}>
                                         <Text style={styles.label}>Email</Text>
                                         <TextInput
@@ -120,7 +135,7 @@ export default function Login() {
                                         {isLoading ? (
                                             <ActivityIndicator color="#FFFFFF" />
                                         ) : (
-                                            <Text style={styles.loginButtonText}>Log In</Text>
+                                            <Text style={styles.loginButtonText}>Sign Up</Text>
                                         )}
                                     </TouchableOpacity>
                                 </View>
@@ -128,9 +143,9 @@ export default function Login() {
 
                             {/* Sign Up Link */}
                             <View style={styles.signupContainer}>
-                                <Text style={styles.signupText}>Don't have an account? </Text>
-                                <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-                                    <Text style={styles.signupLink}>Sign up</Text>
+                                <Text style={styles.signupText}>Already have an account? </Text>
+                                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                                    <Text style={styles.signupLink}>Login</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
