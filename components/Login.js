@@ -39,6 +39,7 @@ export default function Login() {
         try{
             setIsLoading(true);
             const loggedInUser = await login(user.email , user.password);
+            console.log(loggedInUser);
             Toast.success(`${loggedInUser.displayName} successfully logged in` , "bottom");
         }catch (e) {
             console.log(`Error : ${e}`);
