@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import {StatusBar} from "expo-status-bar";
 import {signUp} from '../services/authService'
 import {Toast} from 'toastify-react-native'
+import {ArrowLeft} from "lucide-react-native";
 
 const DEMO_ACCOUNT = {
     email: 'demo@trivia.com',
@@ -65,7 +66,8 @@ export default function Signup() {
                                 style={styles.backButton}
                                 onPress={() => navigation.goBack()}
                             >
-                                <Text style={styles.backButtonText}>← Back</Text>
+                                <ArrowLeft style={styles.backButtonText}  size={18}/>
+                                <Text style={styles.backButtonText}>Back</Text>
                             </TouchableOpacity>
 
                             <View style={styles.header}>
@@ -168,6 +170,10 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
     },
     backButton: {
+        flexDirection : 'row',
+        gap : 8,
+        alignItems : 'center',
+        justifyContent : 'center',
         marginBottom: 24,
         paddingVertical: 8,
         paddingHorizontal: 4,
