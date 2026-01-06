@@ -19,18 +19,24 @@ const ProfileScreen = ({ navigation }) => {
   const [history , setHistory] = useState([]);
 
   const getStats = async () => {
-    try{
+    try {
       const historyData = await getQuizHistoryFromFirebase();
-      setHistory(historyData);
-      console.log(historyData);
-    }catch (e) {
-      console.log(e);
-    }finally {
+      setHistory(Array.isArray(historyData) ? historyData : []);
+    } catch (e) {
+      console.error(e);
+      setHistory([]);
+    } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
+    if (!user) {
+      setHistory([]);
+      setLoading(false);
+      return;
+    }
+
     getStats();
   }, [user]);
 

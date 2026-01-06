@@ -33,9 +33,9 @@ const HistoryScreen = ({ navigation }) => {
   const loadHistory = async () => {
     try {
       const storedHistory = await getQuizHistoryFromFirebase();
-      setHistory(storedHistory)
+      setHistory(Array.isArray(storedHistory) ? storedHistory : [])
     } catch (error) {
-      console.error('Failed to load history:', error);
+      console.log('Failed to load history:', error);
     }finally {
       setLoading(false);
     }
@@ -95,7 +95,7 @@ const HistoryScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -146,14 +146,14 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 4, marginLeft: -4 },
   headerTitle: { fontSize: 20, fontWeight: '700', color: '#09090b' },
-  
+
   content: { flex: 1 },
   titleContainer: { padding: 24, paddingBottom: 16 },
   pageTitle: { fontSize: 24, fontWeight: '700', color: '#09090b', marginBottom: 4 },
   pageSubtitle: { fontSize: 14, color: '#71717a' },
 
   listContent: { paddingHorizontal: 24, paddingBottom: 24 },
-  
+
   // Card Styles
   card: {
     backgroundColor: '#fff',
@@ -177,9 +177,9 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 32 },
   topicTitle: { fontSize: 16, fontWeight: '600', color: '#09090b', textTransform: 'capitalize' },
   dateText: { fontSize: 13, color: '#71717a', marginTop: 2 },
-  
+
   rightSection: { alignItems: 'flex-end' },
-  scoreText: { fontSize: 18, fontWeight: '700', color: '#09090b' },
+  scoreText: { fontSize: 18, fontWeight: '700', color: '#09090b' , marginBottom : 5},
   percentageText: { fontSize: 13, color: '#71717a' },
 
   // Empty State
