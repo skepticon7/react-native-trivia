@@ -59,7 +59,7 @@ const ProfileScreen = ({ navigation }) => {
 
   const getSuccessRate = () => {
     const totalAnswered = history.reduce((acc, h) => acc + (h.score || 0), 0);
-    console.log(totalAnswered);
+    if(totalAnswered === 0) return null;
     return (totalAnswered / (history.length * 10)) * 100;
   }
 
@@ -115,7 +115,7 @@ const ProfileScreen = ({ navigation }) => {
               <Text style={styles.statLabel}>Quizzes</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{getSuccessRate()}%</Text>
+              <Text style={styles.statValue}>{history.length !== 0 ? `${getSuccessRate()}%` : '0%'}</Text>
               <Text style={styles.statLabel}>Avg Score</Text>
             </View>
             {/*<View style={styles.statItem}>*/}
