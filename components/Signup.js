@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {StatusBar} from "expo-status-bar";
-import {signUp} from '../services/authService'
+import {signUp} from '../services/firebaseService'
 import {Toast} from 'toastify-react-native'
 import {ArrowLeft} from "lucide-react-native";
 

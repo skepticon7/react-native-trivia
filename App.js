@@ -11,6 +11,7 @@ import Home from "./components/Home";
 import ProfileScreen from './components/ProfileScreen';
 import HistoryScreen from './components/HistoryScreen';
 import QuizScreen from './components/QuizScreen';
+import QuizController from "./components/QuizController";
 
 
 
@@ -35,7 +36,7 @@ const RootNavigator = () => {
                 <Stack.Screen name="Home" component={Home} />
                 <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="History" component={HistoryScreen} />
-                <Stack.Screen name="Quiz" component={QuizScreen} />
+                <Stack.Screen name="Quiz" component={QuizController} />
                 </>
 
             ) : (

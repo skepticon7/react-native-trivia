@@ -7,10 +7,11 @@ import {
   TouchableOpacity,
   FlatList,
   Platform,
-  StatusBar,
+  StatusBar, ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ArrowLeft } from 'lucide-react-native';
+import {getQuizHistoryFromFirebase} from "../services/firebaseService";
 
 const TOPIC_EMOJIS = {
   science: '🔬',
@@ -23,6 +24,7 @@ const TOPIC_EMOJIS = {
 
 const HistoryScreen = ({ navigation }) => {
   const [history, setHistory] = useState([]);
+  const [loading , setLoading] = useState(true);
 
   useEffect(() => {
     loadHistory();
@@ -30,14 +32,12 @@ const HistoryScreen = ({ navigation }) => {
 
   const loadHistory = async () => {
     try {
-      const storedHistory = await AsyncStorage.getItem('quizHistory');
-      if (storedHistory) {
-        // Parse and reverse so the newest quiz is at the top
-        const parsed = JSON.parse(storedHistory);
-        setHistory(parsed.reverse());
-      }
+      const storedHistory = await getQuizHistoryFromFirebase();
+      setHistory(storedHistory)
     } catch (error) {
       console.error('Failed to load history:', error);
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -57,7 +57,7 @@ const HistoryScreen = ({ navigation }) => {
   };
 
   const renderItem = ({ item }) => {
-    const percentage = Math.round((item.score / item.total) * 100);
+    const percentage = Math.round((item.score / 10) * 100);
     // Fallback emoji if topic key doesn't match
     const emoji = TOPIC_EMOJIS[item.topic.toLowerCase()] || '📝';
 
@@ -75,13 +75,22 @@ const HistoryScreen = ({ navigation }) => {
 
           {/* Right Side: Score */}
           <View style={styles.rightSection}>
-            <Text style={styles.scoreText}>{item.score}/{item.total}</Text>
+            <Text style={styles.scoreText}>{item.score}/10</Text>
             <Text style={styles.percentageText}>{percentage}%</Text>
           </View>
         </View>
       </View>
     );
   };
+
+  if(loading) {
+    return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" />
+          <Text style={{ marginTop: 10 }}>Loading History...</Text>
+        </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>

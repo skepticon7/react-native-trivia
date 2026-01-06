@@ -15,7 +15,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import {StatusBar} from "expo-status-bar";
 import {Toast} from 'toastify-react-native';
-import {login} from '../services/authService';
+import {login} from '../services/firebaseService';
 import {ArrowLeft, MoveLeft} from 'lucide-react-native'
 
 

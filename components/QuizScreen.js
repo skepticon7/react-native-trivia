@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react-native';
+import {saveQuizHistoryToFirebase, saveQuizSessionToFirebase} from "../services/firebaseService";
 
 // Map your local topic IDs to OpenTDB Category IDs
 const CATEGORY_MAP = {
@@ -33,128 +34,47 @@ const decodeHtml = (html) => {
     .replace(/&gt;/g, '>');
 };
 
-const QuizScreen = ({ route, navigation }) => {
-  const { topicId } = route.params; // Get topic passed from Home
-  
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [score, setScore] = useState(0);
+const QuizScreen = ({ navigation , topicId , questions , currentIndex , setCurrentIndex , score , setScore }) => {
+
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isFinished, setIsFinished] = useState(false);
 
-  // --- 1. FETCH QUESTIONS ---
-  useEffect(() => {
-    fetchQuestions();
-  }, []);
-
-  const fetchQuestions = async () => {
-    try {
-      const categoryId = CATEGORY_MAP[topicId] || 9; // Default to General Knowledge if map fails
-      const url = `https://opentdb.com/api.php?amount=10&category=${categoryId}&type=multiple`;
-      
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.results) {
-        // Format questions
-        const formattedQuestions = data.results.map((q) => {
-          // Get 1 correct + 2 incorrect (to make 3 choices total as requested)
-          const incorrect = q.incorrect_answers.slice(0, 2); 
-          const allAnswers = [...incorrect, q.correct_answer];
-          
-          // Shuffle answers
-          const shuffled = allAnswers.sort(() => Math.random() - 0.5);
-
-          return {
-            question: decodeHtml(q.question),
-            correctAnswer: decodeHtml(q.correct_answer),
-            options: shuffled.map(a => decodeHtml(a)),
-          };
-        });
-        setQuestions(formattedQuestions);
-      }
-    } catch (error) {
-      console.error("Error fetching quiz:", error);
-      Alert.alert("Error", "Could not load questions. Check your internet.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // --- 2. HANDLE ANSWER PRESS ---
-  const handleAnswer = (answer) => {
-    if (selectedAnswer) return; // Prevent double clicking
+  const handleAnswer = async (answer) => {
+    if (selectedAnswer) return;
 
     setSelectedAnswer(answer);
     
     const isCorrect = answer === questions[currentIndex].correctAnswer;
-    if (isCorrect) {
-      setScore(prev => prev + 1);
-    }
+    const newScore = isCorrect ? score + 1 : score;
+    setScore(newScore);
 
-    // Wait 1 second, then go to next question
+    await saveQuizSessionToFirebase(topicId, questions, currentIndex + 1, newScore);
+
     setTimeout(() => {
       if (currentIndex < questions.length - 1) {
-        setCurrentIndex(prev => prev + 1);
+        setCurrentIndex(currentIndex + 1);
         setSelectedAnswer(null);
       } else {
-        finishQuiz(isCorrect ? score + 1 : score); // Pass updated score
+        finishQuiz(newScore);
       }
     }, 1000);
+
   };
 
-  // --- 3. FINISH QUIZ LOGIC ---
   const finishQuiz = async (finalScore) => {
     setIsFinished(true);
-    
-    // Save to History via AsyncStorage
-    const newEntry = {
-      topic: topicId,
-      score: finalScore,
-      total: 10,
-      date: new Date().toISOString(),
-    };
-
     try {
-      // 1. Update Quiz History list
-      const existingHistory = await AsyncStorage.getItem('quizHistory');
-      const historyArray = existingHistory ? JSON.parse(existingHistory) : [];
-      historyArray.push(newEntry);
-      await AsyncStorage.setItem('quizHistory', JSON.stringify(historyArray));
-
-      // 2. Update Daily Progress
-      const today = new Date().toDateString();
-      const storedDate = await AsyncStorage.getItem('lastQuizDate');
-      let dailyCount = 0;
-      
-      if (storedDate === today) {
-        const storedCount = await AsyncStorage.getItem('quizzesToday');
-        dailyCount = storedCount ? parseInt(storedCount) : 0;
-      }
-      
-      // Increment only if less than 10 (or keep going if you want)
-      if (dailyCount < 10) {
-        await AsyncStorage.setItem('quizzesToday', (dailyCount + 1).toString());
-        await AsyncStorage.setItem('lastQuizDate', today);
-      }
-      
+      await saveQuizHistoryToFirebase(topicId , finalScore);
+      // Optionally, remove the Firebase session so next quiz is fresh
+      await saveQuizSessionToFirebase(topicId, [], 0, 0);
     } catch (e) {
-      console.error("Failed to save progress", e);
+      console.log('Failed to save progress', e);
     }
   };
 
-  // --- 4. RENDER UI ---
 
-  // Loading State
-  if (loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#000" />
-        <Text style={{ marginTop: 10 }}>Preparing your quiz...</Text>
-      </View>
-    );
-  }
 
   // Result State
   if (isFinished) {

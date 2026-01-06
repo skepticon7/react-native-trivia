@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,13 +7,32 @@ import {
   TouchableOpacity,
   Alert,
   StatusBar,
-  Platform,
+  Platform, ActivityIndicator,
 } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import {getQuizHistoryFromFirebase} from "../services/firebaseService";
 
 const ProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
+  const [loading , setLoading] = useState(true);
+  const [history , setHistory] = useState([]);
+
+  const getStats = async () => {
+    try{
+      const historyData = await getQuizHistoryFromFirebase();
+      setHistory(historyData);
+      console.log(historyData);
+    }catch (e) {
+      console.log(e);
+    }finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    getStats();
+  }, [user]);
 
   const handleLogout = async () => {
     
@@ -37,6 +56,21 @@ const ProfileScreen = ({ navigation }) => {
     }
     return user?.email ? user.email.charAt(0).toUpperCase() : 'U';
   };
+
+  const getSuccessRate = () => {
+    const totalAnswered = history.reduce((acc, h) => acc + (h.score || 0), 0);
+    console.log(totalAnswered);
+    return (totalAnswered / (history.length * 10)) * 100;
+  }
+
+  if(loading) {
+    return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" />
+          <Text style={{ marginTop: 10 }}>Loading Profile...</Text>
+        </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -77,17 +111,17 @@ const ProfileScreen = ({ navigation }) => {
           {/* Bottom Section: Stats Grid */}
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>12</Text>
+              <Text style={styles.statValue}>{history.length}</Text>
               <Text style={styles.statLabel}>Quizzes</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>85%</Text>
+              <Text style={styles.statValue}>{getSuccessRate()}%</Text>
               <Text style={styles.statLabel}>Avg Score</Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>5</Text>
-              <Text style={styles.statLabel}>Streak</Text>
-            </View>
+            {/*<View style={styles.statItem}>*/}
+            {/*  <Text style={styles.statValue}>5</Text>*/}
+            {/*  <Text style={styles.statLabel}>Streak</Text>*/}
+            {/*</View>*/}
           </View>
         </View>
 
