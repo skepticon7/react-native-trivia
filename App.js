@@ -8,6 +8,10 @@ import ToastProvider from 'toastify-react-native'
 import Signup from "./components/Signup";
 import AuthProvider, {useAuth} from "./context/AuthContext";
 import Home from "./components/Home";
+import ProfileScreen from './components/ProfileScreen';
+import HistoryScreen from './components/HistoryScreen';
+import QuizScreen from './components/QuizScreen';
+
 
 
 
@@ -27,7 +31,13 @@ const RootNavigator = () => {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             {user ? (
+                <>
                 <Stack.Screen name="Home" component={Home} />
+                <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="History" component={HistoryScreen} />
+                <Stack.Screen name="Quiz" component={QuizScreen} />
+                </>
+
             ) : (
                 <>
                     <Stack.Screen name="HomePage" component={HomePage} />
