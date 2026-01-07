@@ -74,7 +74,6 @@ const QuizController = ({route , navigation}) => {
     }, [topicId]);
 
     useEffect(() => {
-        console.log(questions);
     }, [questions]);
 
     if(loading) {

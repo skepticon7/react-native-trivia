@@ -12,6 +12,7 @@ import ProfileScreen from './components/ProfileScreen';
 import HistoryScreen from './components/HistoryScreen';
 import QuizScreen from './components/QuizScreen';
 import QuizController from "./components/QuizController";
+import SettingsScreen from './components/SettingsScreen';
 
 
 
@@ -37,6 +38,7 @@ const RootNavigator = () => {
                 <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="History" component={HistoryScreen} />
                 <Stack.Screen name="Quiz" component={QuizController} />
+                <Stack.Screen name="Settings" component={SettingsScreen} />
                 </>
 
             ) : (
