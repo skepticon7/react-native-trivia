@@ -7,11 +7,12 @@ import {
   TouchableOpacity,
   FlatList,
   Platform,
-  StatusBar, ActivityIndicator,
+  StatusBar,
+  ActivityIndicator,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// Make sure this path matches your project structure
+import { getQuizHistoryFromFirebase } from "../services/firebaseService";
 import { ArrowLeft } from 'lucide-react-native';
-import {getQuizHistoryFromFirebase} from "../services/firebaseService";
 
 const TOPIC_EMOJIS = {
   science: '🔬',
@@ -24,7 +25,7 @@ const TOPIC_EMOJIS = {
 
 const HistoryScreen = ({ navigation }) => {
   const [history, setHistory] = useState([]);
-  const [loading , setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadHistory();
@@ -33,15 +34,17 @@ const HistoryScreen = ({ navigation }) => {
   const loadHistory = async () => {
     try {
       const storedHistory = await getQuizHistoryFromFirebase();
-      setHistory(storedHistory)
+      // Ensure we always work with an array
+      setHistory(Array.isArray(storedHistory) ? storedHistory : []);
     } catch (error) {
       console.error('Failed to load history:', error);
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     const today = new Date();
     const yesterday = new Date(today);
@@ -58,8 +61,9 @@ const HistoryScreen = ({ navigation }) => {
 
   const renderItem = ({ item }) => {
     const percentage = Math.round((item.score / 10) * 100);
-    // Fallback emoji if topic key doesn't match
-    const emoji = TOPIC_EMOJIS[item.topic.toLowerCase()] || '📝';
+    // Safe emoji lookup
+    const topicKey = item.topic ? item.topic.toLowerCase() : 'default';
+    const emoji = TOPIC_EMOJIS[topicKey] || '📝';
 
     return (
       <View style={styles.card}>
@@ -68,27 +72,29 @@ const HistoryScreen = ({ navigation }) => {
           <View style={styles.leftSection}>
             <Text style={styles.emoji}>{emoji}</Text>
             <View>
-              <Text style={styles.topicTitle}>{item.topic}</Text>
+              {/* Ensure topic is treated as a string */}
+              <Text style={styles.topicTitle}>{String(item.topic)}</Text>
               <Text style={styles.dateText}>{formatDate(item.date)}</Text>
             </View>
           </View>
 
           {/* Right Side: Score */}
           <View style={styles.rightSection}>
-            <Text style={styles.scoreText}>{item.score}/10</Text>
-            <Text style={styles.percentageText}>{percentage}%</Text>
+            {/* FIX: Explicitly convert numbers to strings inside Text components */}
+            <Text style={styles.scoreText}>{String(item.score)}/10</Text>
+            <Text style={styles.percentageText}>{String(percentage)}%</Text>
           </View>
         </View>
       </View>
     );
   };
 
-  if(loading) {
+  if (loading) {
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" />
-          <Text style={{ marginTop: 10 }}>Loading History...</Text>
-        </View>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" />
+        <Text style={styles.loadingText}>Loading History...</Text>
+      </View>
     );
   }
 
@@ -102,7 +108,8 @@ const HistoryScreen = ({ navigation }) => {
           <ArrowLeft size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>History</Text>
-        <View style={{ width: 40 }} /> {/* Spacer */}
+        {/* Spacer */}
+        <View style={{ width: 40 }} /> 
       </View>
 
       <View style={styles.content}>
@@ -134,6 +141,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  loadingContainer: {
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  loadingText: {
+    marginTop: 10
   },
   header: {
     flexDirection: 'row',

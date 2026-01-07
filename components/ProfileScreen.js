@@ -1,41 +1,39 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   SafeAreaView,
   TouchableOpacity,
-  Alert,
   StatusBar,
-  Platform, ActivityIndicator,
+  Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
-import {getQuizHistoryFromFirebase} from "../services/firebaseService";
+import { getQuizHistoryFromFirebase } from "../services/firebaseService";
 
 const ProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
-  const [loading , setLoading] = useState(true);
-  const [history , setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [history, setHistory] = useState([]);
 
   const getStats = async () => {
-    try{
+    try {
       const historyData = await getQuizHistoryFromFirebase();
-      setHistory(historyData);
-      console.log(historyData);
-    }catch (e) {
+      setHistory(historyData || []); // Ensure it is an array
+    } catch (e) {
       console.log(e);
-    }finally {
+    } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     getStats();
   }, [user]);
 
   const handleLogout = async () => {
-    
     try {
       if (logout) {
         await logout();
@@ -47,28 +45,28 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
-  // Helper to get initials (e.g., "JD" from "John Doe")
   const getInitials = () => {
     if (user?.displayName) {
-        const names = user.displayName.split(' ');
-        if (names.length >= 2) return `${names[0][0]}${names[1][0]}`.toUpperCase();
-        return names[0][0].toUpperCase();
+      const names = user.displayName.split(' ');
+      if (names.length >= 2) return `${names[0][0]}${names[1][0]}`.toUpperCase();
+      return names[0][0].toUpperCase();
     }
     return user?.email ? user.email.charAt(0).toUpperCase() : 'U';
   };
 
   const getSuccessRate = () => {
-    const totalAnswered = history.reduce((acc, h) => acc + (h.score || 0), 0);
-    console.log(totalAnswered);
-    return (totalAnswered / (history.length * 10)) * 100;
-  }
+    if (!history || history.length === 0) return 0;
+    const totalScore = history.reduce((acc, h) => acc + (h.score || 0), 0);
+    const maxPossibleScore = history.length * 10;
+    return Math.round((totalScore / maxPossibleScore) * 100);
+  };
 
-  if(loading) {
+  if (loading) {
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" />
-          <Text style={{ marginTop: 10 }}>Loading Profile...</Text>
-        </View>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000" />
+        <Text style={styles.loadingText}>Loading Profile...</Text>
+      </View>
     );
   }
 
@@ -76,7 +74,7 @@ const ProfileScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      {/* --- Header --- */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backBtn} 
@@ -85,30 +83,26 @@ const ProfileScreen = ({ navigation }) => {
           <ArrowLeft size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
-        <View style={{ width: 40 }} /> {/* Spacer to center title */}
+        <View style={{ width: 40 }} />
       </View>
 
-      {/* --- Main Content --- */}
+      {/* Main Content */}
       <View style={styles.content}>
         
         {/* User Stats Card */}
         <View style={styles.card}>
-          {/* Top Section: Avatar & Info */}
           <View style={styles.profileHeader}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{getInitials()}</Text>
             </View>
             <View>
-              {/* Display Username or fallback to "User" */}
               <Text style={styles.userName}>{user?.username || 'User'}</Text>
               <Text style={styles.userEmail}>{user?.email}</Text>
             </View>
           </View>
 
-          {/* Divider */}
           <View style={styles.divider} />
 
-          {/* Bottom Section: Stats Grid */}
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{history.length}</Text>
@@ -118,16 +112,15 @@ const ProfileScreen = ({ navigation }) => {
               <Text style={styles.statValue}>{getSuccessRate()}%</Text>
               <Text style={styles.statLabel}>Avg Score</Text>
             </View>
-            {/*<View style={styles.statItem}>*/}
-            {/*  <Text style={styles.statValue}>5</Text>*/}
-            {/*  <Text style={styles.statLabel}>Streak</Text>*/}
-            {/*</View>*/}
           </View>
         </View>
 
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity 
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('Settings')}
+          >
             <Text style={styles.actionBtnText}>Account Settings</Text>
           </TouchableOpacity>
           
@@ -154,8 +147,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  
-  // Header
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -174,13 +176,9 @@ const styles = StyleSheet.create({
     padding: 4,
     marginLeft: -4,
   },
-
-  // Content
   content: {
     padding: 24,
   },
-
-  // Card Styles
   card: {
     backgroundColor: '#fff',
     borderRadius: 8,
@@ -188,7 +186,6 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     padding: 24,
     marginBottom: 24,
-    // Shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -205,7 +202,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#09090b', // Primary black
+    backgroundColor: '#09090b',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -221,7 +218,7 @@ const styles = StyleSheet.create({
   },
   userEmail: {
     fontSize: 14,
-    color: '#71717a', // muted-foreground
+    color: '#71717a',
   },
   divider: {
     height: 1,
@@ -246,8 +243,6 @@ const styles = StyleSheet.create({
     color: '#71717a',
     marginTop: 4,
   },
-
-  // Buttons
   actionsContainer: {
     gap: 12,
   },
@@ -269,7 +264,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   logoutText: {
-    color: '#ef4444', // Destructive Red
+    color: '#ef4444',
   },
 });
 

@@ -27,7 +27,6 @@ export const signUp = async (email , password , username) => {
 
 export const login = async (email , password) => {
     const userCredentials = await signInWithEmailAndPassword(auth ,email , password);
-    console.log("user is :" + JSON.stringify(userCredentials));
     return userCredentials.user;
 }
 
@@ -47,7 +46,6 @@ export const getQuizSessionFromFirebase = async (topicId) => {
             return null;
 
     }catch (e) {
-        console.log(`Error getting quiz session from firebase : ${e}`);
         return null;
     }
 }
